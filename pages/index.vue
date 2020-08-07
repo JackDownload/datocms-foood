@@ -22,6 +22,7 @@
                     <h1 class="title">
                       <nuxt-link :to="`/posts/${post.slug}`">{{
                         post.title
+                         post.title
                       }}</nuxt-link>
                     </h1>
                     <div v-html="post.excerpt" />
