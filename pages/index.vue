@@ -1,117 +1,168 @@
 <template>
   <div>
-    <HeroBlocksHome />
-    <!-- <div v-if="$apollo.queries.allPosts.loading" class="Loading"> -->
-    <div v-if="$apollo.loading" class="Loading">
-      <LoadingSpinner />
-    </div>
-    <ContentColumn v-else>
-      <PostExcerpt
-        v-for="(post, index) in allPosts"
-        :key="index"
-        :slug="post.slug"
-        :image="post.image"
-        :title="post.title"
-        :date="post.datePublished"
-        :excerpt="post.excerpt"
-        :job="post.isJob"
-        :staff="post.isStaff"
-        :event="post.isEvent"
-      />
-      <p class="Section text-right">
-        <nuxt-link to="/news" class="Button Button--outline">
-          View all news
-          <icon name="arrow-forward" height="14" width="14" class="ml-1" />
-        </nuxt-link>
-      </p>
-    </ContentColumn>
-    <hr class="Section--rule Rule" />
-    <ContentColumn>
-      <!-- <div class="Grid">
-        <div class="Grid-item sm:w-1/2">
-          <CardCta
-            card-name="volunteer"
-            lede="Join and contribute"
-            sublede="Our members help us blah blah…"
-            link-label="Become a RAATSICC member"
-            to="/about#member"
-          />
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container">
+          <div v-for="post in posts.slice(0, 2)" v-bind:key="post.slug">
+            <div class="columns">
+              <div class="column is-8 is-offset-2">
+                <figure class="image">
+                  <datocms-image :data="post.coverImage.responsiveImage" />
+                </figure>
+              </div>
+            </div>
+
+            <section class="section">
+              <div class="columns">
+                <div class="column is-8 is-offset-2">
+                  <div class="content is-medium">
+                    <h2 class="subtitle is-4">
+                      {{ formatDate(post.publicationDate) }}
+                    </h2>
+                    <h1 class="title">
+                      <nuxt-link :to="`/posts/${post.slug}`">{{
+                        post.title
+                      }}</nuxt-link>
+                    </h1>
+                    <div v-html="post.excerpt" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="is-divider" />
+          </div>
         </div>
-        <div class="Grid-item sm:w-1/2">
-          <CardCta
-            card-name="news"
-            lede="News to share?"
-            sublede="Send it to us, we'll list it for you"
-            link-label="goodnews@raatsicc.org.au"
-            href="mailto:goodnews@raatsicc.org.au"
-          />
+      </div>
+    </section>
+
+    <!-- newsletter -->
+    <section class="section">
+      <div class="columns">
+        <div class="column is-10 is-offset-1">
+          <div class="container has-text-centered is-fluid">
+            <div class="hero is-light">
+              <div class="hero-body">
+                <h2 class="title is-4">Sign up for our newsletter</h2>
+                <div class="column is-6 is-offset-3">
+                  <div class="field has-addons has-addons-centered">
+                    <div class="control is-expanded">
+                      <input
+                        class="input"
+                        type="text"
+                        placeholder="Email address"
+                      />
+                    </div>
+                    <div class="control">
+                      <a class="button is-info">
+                        Subscribe
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div> -->
-      <CardCta
-        card-name="resources"
-        lede="Resources heading"
-        sublede="Resources sub-heading"
-        link-label="Order from our Resources "
-        href="https://www.datocms-assets.com/11614/1557789367-raatsicc-resources-flyer2017.pdf"
-        class="Grid-space"
-        orange
-      />
-      <CardCta
-        card-name="newsletter"
-        lede="Subscribe to news"
-        sublede="Get all the news in your email inbox"
-        link-label="goodnews@raatsicc.org.au"
-        href="mailto:goodnews@raatsicc.org.au"
-        class="mt-8"
-      />
-    </ContentColumn>
+      </div>
+    </section>
+
+    <!-- Articles -->
+
+    <section class="hero ">
+      <div class="hero-body">
+        <div class="container">
+          <div
+            v-for="group in Math.ceil((posts.length - 2) / 2)"
+            v-bind:key="group"
+          >
+            <section class="section">
+              <div class="columns is-variable is-8">
+                <div
+                  v-for="(post, index) in posts.slice(group * 2, group * 2 + 2)"
+                  v-bind:key="post.slug"
+                  :class="['column is-5', index === 0 && 'is-offset-1']"
+                >
+                  <div class="content is-medium">
+                    <h2 class="subtitle is-5 has-text-grey">
+                      {{ formatDate(post.publicationDate) }}
+                    </h2>
+                    <h1 class="title has-text-black is-3">
+                      <nuxt-link :to="`/posts/${post.slug}`">{{
+                        post.title
+                      }}</nuxt-link>
+                    </h1>
+                    <div class="has-text-dark" v-html="post.excerpt" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="is-divider" />
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script>
-import CardCta from "~/components/CardCta";
-import ContentColumn from "~/components/ContentColumn.vue";
-import HeroBlocksHome from "~/components/HeroBlocksHome.vue";
-import LoadingSpinner from "~/components/LoadingSpinner.vue";
-import PostExcerpt from "~/components/PostExcerpt.vue";
-import gql from "graphql-tag";
-import head, { metaTagsQuery } from "~/mixins/head";
+import { request, gql, imageFields, seoMetaTagsFields } from '~/lib/datocms'
+import { toHead } from 'vue-datocms'
+import format from 'date-fns/format'
+import parseISO from 'date-fns/parseISO'
 
 export default {
-  components: {
-    CardCta,
-    ContentColumn,
-    HeroBlocksHome,
-    LoadingSpinner,
-    PostExcerpt,
-  },
-  mixins: [head],
-  apollo: {
-    allPosts: gql`
-      {
-        allPosts(first: 3, orderBy: [datePublished_DESC]) {
-          _firstPublishedAt
-          slug
-          title
-          excerpt
-          datePublished
-          isJob
-          isStaff
-          isEvent
-          image {
-            url
+  async asyncData({ params }) {
+    const data = await request({
+      query: gql`
+        {
+          site: _site {
+            favicon: faviconMetaTags {
+              ...seoMetaTagsFields
+            }
+          }
+
+          posts: allPosts(first: 10, orderBy: _firstPublishedAt_DESC) {
+            id
+            title
+            slug
+            publicationDate: _firstPublishedAt
+            excerpt
+            coverImage {
+              responsiveImage(imgixParams: { fit: crop, ar: "16:9", w: 860 }) {
+                ...imageFields
+              }
+            }
+            author {
+              name
+              picture {
+                responsiveImage(imgixParams: { fit: crop, ar: "1:1", w: 40 }) {
+                  ...imageFields
+                }
+              }
+            }
           }
         }
-      }
-    `,
-    page: gql`
-      {
-        page: homePage {
-          ${metaTagsQuery}
-        }
-      }
-    `,
+
+        ${imageFields}
+        ${seoMetaTagsFields}
+      `
+    })
+
+    return { ready: !!data, ...data }
   },
-  data: () => ({ allPosts: [], page: null }),
-};
+  methods: {
+    formatDate(date) {
+      return format(parseISO(date), 'PPP')
+    }
+  },
+  head() {
+    if (!this.ready) {
+      return
+    }
+
+    return toHead(this.site.favicon)
+  }
+}
 </script>
