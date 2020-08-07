@@ -3,6 +3,25 @@
     <section class="hero">
       <div class="hero-body">
         <div class="container">
+            <ContentColumn v-else article>
+      <Post
+        :slug="post.slug"
+        :tags="post.tags"
+        :image="post.image"
+        :title="post.title"
+        :date="post.datePublished"
+        :body="post.body"
+        :button="post.includeButton"
+        :button-link="post.buttonLink"
+        :button-label="post.buttonLabel"
+        :job="post.isJob"
+        :staff="post.isStaff"
+        :event="post.isEvent"
+        :event-title="post.eventTitle"
+        :event-date="post.eventDate"
+        :event-is-not-one-day="post.eventIsNotOneDay"
+        :event-location="post.eventLocation"
+      >
           <div v-for="post in posts.slice(0, 2)" v-bind:key="post.slug">
             <div class="columns">
               <div class="column is-8 is-offset-2">
