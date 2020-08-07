@@ -20,6 +20,13 @@
                 <h1 class="title">
                   <nuxt-link :to="`/posts/${post.slug}`">{{
                     post.title
+                    post.category
+                    post.tag
+                  }}</nuxt-link>
+                </h1>
+                                <h1 class="tag">
+                  <nuxt-link :to="`/posts/${post.tag}`">{{
+                    post.tag
                   }}</nuxt-link>
                 </h1>
                 <div v-html="post.content" />
@@ -56,6 +63,7 @@ export default {
             id
             title
             slug
+            category
             publicationDate: _firstPublishedAt
             content
             coverImage {
